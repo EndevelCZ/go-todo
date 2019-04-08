@@ -3,6 +3,10 @@
 
 [hex-example](https://github.com/Holmes89/hex-example)
 
+# go microservices frameworks
+[micro](https://micro.mu/)
+[go kit](https://gokit.io/)
+
 ```sh
 # start datastore server
 go get -u cloud.google.com/go/datastore
