@@ -22,6 +22,7 @@ func NewTodoHandler(service TodoService) TodoHandler {
 	}
 }
 func (h *todoHandler) Get(w http.ResponseWriter, r *http.Request) {
+	logrus.Info("Proccessing get handler")
 	todos, err := h.service.FindAllTodos()
 	if err != nil {
 		logrus.WithField("error", err).Error("Unable to find all todos")

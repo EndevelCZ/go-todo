@@ -2,23 +2,33 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
+	"os"
 
 	datastoredb "github.com/adamplansky/todo/internal/database/datastore"
 	"github.com/adamplansky/todo/internal/todo"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 
 	"cloud.google.com/go/datastore"
 )
 
 func main() {
+	datastoreURL := os.Getenv("DATASTORE_EMULATOR_HOST")
+	logrus.Println("DATASTORE_EMULATOR_HOST: ", datastoreURL)
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "5000"
+	}
+
 	var todoRepository todo.TodoRepository
 
 	projectID := "silent-turbine-233205"
 	client, err := newDatastoreClient(projectID)
 	if err != nil {
-		log.Fatal(err)
+
+		logrus.Fatalf("unable to connect to database %v", err)
 	}
 	defer client.Close()
 	todoRepository = datastoredb.NewDataStoreTodoRepository(client)
@@ -31,7 +41,8 @@ func main() {
 
 	// http.Handle("/", accessControl(middleware.Authenticate(router)))
 	// http.Handle("/", handlers.CombinedLoggingHandler(os.Stderr, router))
-	log.Fatal(http.ListenAndServe(":80", router))
+	logrus.Println(fmt.Sprintf(":%s", port))
+	logrus.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
 
 // func postgresConnection(database string) *sql.DB {
@@ -53,11 +64,13 @@ func main() {
 
 // }
 func newDatastoreClient(projectID string) (*datastore.Client, error) {
+	logrus.Println("logrus: newDatastoreClient", projectID)
 	ctx := context.Background()
 	client, err := datastore.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Printf("logrus: newDatastoreClient %v", client)
 	return client, nil
 }
 

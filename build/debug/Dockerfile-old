@@ -1,0 +1,47 @@
+FROM golang:alpine AS build-env
+
+RUN apk add --no-cache ca-certificates dpkg gcc git
+RUN go get github.com/derekparker/delve/cmd/dlv
+RUN go install github.com/derekparker/delve/cmd/dlv
+RUN mkdir -p /app
+WORKDIR /app
+COPY . .
+RUN ls / 
+RUN pwd
+RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/server/main.go
+
+FROM scratch
+LABEL maintainer="Adam Plánský <adamplansky@gmail.com>"
+ENV PORT 5000
+EXPOSE 5000
+ENV DATABASE_URL=""
+COPY --from=build-env /app/main /
+COPY --from=build-env /go/bin/dlv /
+# CMD ["/main"]
+CMD ["dlv", "debug", "--headless", "--listen=:2345", "--api-version=2"]
+
+
+
+# FROM golang:1.12-alpine
+
+# COPY root /
+
+# ENV GOPATH /go
+# ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+
+# RUN apk add --no-cache ca-certificates \
+#         dpkg \
+#         gcc \
+#         git \
+#         musl-dev \
+#     && mkdir -p "$GOPATH/src" "$GOPATH/bin" \
+#     && chmod -R 777 "$GOPATH" \
+#     && chmod +x /entrypoint.sh \
+#     && go get github.com/derekparker/delve/cmd/dlv
+
+# WORKDIR /app
+# RUN mkdir -p /app
+# RUN ls
+# ENTRYPOINT ["/entrypoint.sh"]
+
+# # CMD ["dlv", "debug", "--headless", "--listen=:2345", "--api-version=2"]

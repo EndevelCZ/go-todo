@@ -1,0 +1,26 @@
+#GO_PROJECT_DIR=/go/src/github.com/mikemadisonweb/go-debug-example
+
+version: '3'
+services:
+  datastore:
+    image: groovex/datastore-emulator
+    ports:
+      - "8081:8081"
+  app:
+    container_name: "todo-debug"
+    build:
+      context: .
+      dockerfile: "./build/debug/Dockerfile"
+    volumes:
+      - ".:/app"
+    ports:
+      - "9999:5000"
+      - "2345:2345"
+    security_opt:
+      - "seccomp:unconfined"
+    environment:
+      - DATASTORE_EMULATOR_HOST=datastore:8081
+      - DATASTORE_PROJECT_ID=emulator
+      - GO_WORK_DIR=/app
+    depends_on:
+      - datastore

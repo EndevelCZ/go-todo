@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/adamplansky/todo/internal/todo"
+	"github.com/sirupsen/logrus"
 
 	"cloud.google.com/go/datastore"
 )
@@ -33,12 +34,13 @@ func (db *todoRepository) CreateTodo(todo *todo.Todo) (err error) {
 }
 
 func (db *todoRepository) FindAll() ([]*todo.Todo, error) {
+	logrus.Info("Proccessing FindAll datastore")
 	ctx := context.Background()
 	todos := make([]*todo.Todo, 0)
 	q := datastore.NewQuery("Todo")
-
+	logrus.Info("Proccessing get all")
 	keys, err := db.connection.GetAll(ctx, q, &todos)
-
+	logrus.Info("Processed get all")
 	if err != nil {
 		return nil, fmt.Errorf("datastoredb: could not list todos: %v", err)
 	}
@@ -46,5 +48,6 @@ func (db *todoRepository) FindAll() ([]*todo.Todo, error) {
 	for i, k := range keys {
 		todos[i].ID = k.ID
 	}
+	logrus.Info("returning todos")
 	return todos, nil
 }

@@ -1,0 +1,19 @@
+version: '3'
+services:
+  datastore:
+    image: groovex/datastore-emulator
+    ports:
+      - "8081:8081"
+  todogohexa:
+    # build:
+    #   context: ../path/to/service
+    #   dockerfile: $PWD/Dockerfile-for-service
+    build: .
+    image: todo-go-local-build
+    ports:
+      - "5000:5000"
+    environment:
+      - DATASTORE_EMULATOR_HOST=datastore:8081
+      - DATASTORE_PROJECT_ID=emulator
+    depends_on:
+      - datastore
