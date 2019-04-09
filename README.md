@@ -26,6 +26,16 @@ curl -X POST http://localhost/todos -H 'Content-Type: application/json' -d '{ "t
 curl http://localhost/todos -H 'Content-Type: application/json'
 ```
 
+
+# grpc debugging
+```sh
+cat pb/add.json | prototool grpc pb \
+--address 0.0.0.0:5000 \
+--method pb.Todos/AddTodo \
+--stdin
+```
+
+
 # DEBUGGER
 1) install DELVE!!
 [vscode debugger DELVE!!](https://github.com/go-delve/delve)

@@ -11,6 +11,7 @@
             "mode": "debug",
             "program": "${fileDirname}",
             "env": {"DATASTORE_EMULATOR_HOST":"0.0.0.0:8081"},
+            "args": ["-grpc"],
         },
         {
             "name": "Launch Package",

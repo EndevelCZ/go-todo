@@ -2,26 +2,31 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 
 	datastoredb "github.com/adamplansky/todo/internal/database/datastore"
 	"github.com/adamplansky/todo/internal/todo"
+	"github.com/adamplansky/todo/pb"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 
 	"cloud.google.com/go/datastore"
 )
 
 func main() {
+
+	grpcPtr := flag.Bool("grpc", false, "grpc server")
+	httpPtr := flag.Bool("http", false, "http server")
+	port := flag.String("port", "5000", "port")
+	flag.Parse()
 	datastoreURL := os.Getenv("DATASTORE_EMULATOR_HOST")
 	logrus.Println("DATASTORE_EMULATOR_HOST: ", datastoreURL)
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "5000"
-	}
-
+	logrus.Println("listening on PORT: ", *port)
 	var todoRepository todo.TodoRepository
 
 	projectID := "silent-turbine-233205"
@@ -33,16 +38,34 @@ func main() {
 	defer client.Close()
 	todoRepository = datastoredb.NewDataStoreTodoRepository(client)
 	todoService := todo.NewTodoService(todoRepository)
-	todoHandler := todo.NewTodoHandler(todoService)
+	switch {
+	case *grpcPtr:
+		todoGrpcHandler := todo.NewTodoGrpcHandler(todoService)
 
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/todos", todoHandler.CreateTodo).Methods("POST")
-	router.HandleFunc("/todos", todoHandler.Get).Methods("GET")
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", *port))
+		if err != nil {
+			logrus.Fatalf("failed to listen: %v", err)
+		}
+		s := grpc.NewServer()
+		pb.RegisterTodosServer(s, todoGrpcHandler)
+		if err := s.Serve(lis); err != nil {
+			logrus.Fatalf("failed to serve: %v", err)
+		}
+	case *httpPtr:
+		todoHandler := todo.NewTodoHandler(todoService)
 
-	// http.Handle("/", accessControl(middleware.Authenticate(router)))
-	// http.Handle("/", handlers.CombinedLoggingHandler(os.Stderr, router))
-	logrus.Println(fmt.Sprintf(":%s", port))
-	logrus.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+		router := mux.NewRouter().StrictSlash(true)
+		router.HandleFunc("/todos", todoHandler.CreateTodo).Methods("POST")
+		router.HandleFunc("/todos", todoHandler.Get).Methods("GET")
+
+		// http.Handle("/", accessControl(middleware.Authenticate(router)))
+		// http.Handle("/", handlers.CombinedLoggingHandler(os.Stderr, router))
+		logrus.Println(fmt.Sprintf(":%s", *port))
+		logrus.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", *port), router))
+	default:
+		fmt.Println("invalid flag")
+	}
+
 }
 
 // func postgresConnection(database string) *sql.DB {

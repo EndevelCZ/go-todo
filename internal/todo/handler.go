@@ -13,7 +13,7 @@ type TodoHandler interface {
 }
 
 type todoHandler struct {
-	service TodoService
+	service TodoService //TodoService is interface
 }
 
 func NewTodoHandler(service TodoService) TodoHandler {
@@ -21,8 +21,17 @@ func NewTodoHandler(service TodoService) TodoHandler {
 		service,
 	}
 }
+
+// //todo: better to use tags in model??
+// func todoToPbTodo(todo *Todo) *pb.Todo {
+// 	return &pb.Todo{
+// 		Id:   todo.ID,
+// 		Text: todo.Text,
+// 		Done: todo.Done,
+// 	}
+// }
+
 func (h *todoHandler) Get(w http.ResponseWriter, r *http.Request) {
-	logrus.Info("Proccessing get handler")
 	todos, err := h.service.FindAllTodos()
 	if err != nil {
 		logrus.WithField("error", err).Error("Unable to find all todos")
