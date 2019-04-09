@@ -8,6 +8,24 @@
 
 [go kit](https://gokit.io/)
 
+
+
+## DOCKER
+```sh
+
+# run server
+docker-compose up 
+
+# play with client
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client add this is my first todo # add todo list
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client add this is my second todo
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client list #show all todos
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client update 1 #check todo in list with id 1
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client update 2
+docker exec  $(docker ps -q --filter ancestor=gohexa) ./client delete 1  #delete todo in list with id 1
+``` 
+
+# GO RUN 
 ```sh
 # start datastore server
 go get -u cloud.google.com/go/datastore
@@ -18,7 +36,13 @@ gcloud beta emulators datastore start
 $(gcloud beta emulators datastore env-init)
 
 # run server
-go run main.go
+go run cmd/server/main.go -grpc
+
+# run client
+go run cmd/client/main.go -grpc add todo text
+go run cmd/client/main.go -grpc list
+go run cmd/client/main.go -grpc update id
+go run cmd/client/main.go -grpc delete id
 
 # add todo
 curl -X POST http://localhost/todos -H 'Content-Type: application/json' -d '{ "text": "second todo" } '
