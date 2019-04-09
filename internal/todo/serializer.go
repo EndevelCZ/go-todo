@@ -1,3 +1,10 @@
+// Mam dva handlery, grpchandler a handler (httphandler)
+
+// grpc handler mi serializuje ||| func(todo (model)) returns (*pb.Todo) ||| (protobuffer) (metoda todoToPbTodo(todo))
+// http handler mi serializuje ||| func(todo (model)) returns ([]byte) ||| (jsonu) (metoda json.Marshal(todo))
+// a ted bych potreboval mit neco jako interface Serializer
+// a pod nim dva
+
 package todo
 
 import (
